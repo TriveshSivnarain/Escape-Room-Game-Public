@@ -1,18 +1,33 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { TrackballControls } from 'three/addons/controls/TrackballControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 
+let charRotAngle = 0;
 // Scene setup
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
+const controls = new PointerLockControls(camera, renderer.domElement)
+controls.addEventListener('lock', () => (menuPanel.style.display = 'none'))
+controls.addEventListener('unlock', () => (menuPanel.style.display = 'block'))
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
+/*document.addEventListener('mousemove', function(e){
+    let scale = -0.01;
+    charRotAngle = charRotAngle + (e.movementX * scale)
+    orbit.rotateY( e.movementX * scale );
+    orbit.rotateX( e.movementY * scale ); 
+    orbit.rotation.z = 0; //this is important to keep the camera level..
+})*/
 
 // Add Ambient Light (soft global light for all objects)
 const ambientLight = new THREE.AmbientLight(0x404040, 2);
 scene.add(ambientLight);
-
+controls.unlock()
 // Add Directional Light (like sunlight)
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(5, 10, 5);
@@ -26,9 +41,16 @@ loader.load('/public/SuitsCharacter.gltf', function (gltf) {
     scene.add(character);
     character.position.set(0, 0, 0); // Start position at the center
     character.scale.set(1, 1, 1);    // Adjust character scale
+    character.rotation.set(new THREE.Vector3( Math.PI,0, 0 ))
 }, undefined, function (error) {
     console.error('An error occurred while loading the character model:', error);
 });
+
+/*let orbit = new THREE.Object3D();
+orbit.rotation.order = "YXZ";
+orbit.position.set(0,0,0);
+scene.add(orbit);
+orbit.add( camera );*/
 
 // Load environment models from /public/glTF and adjust scaling/position
 loader.load('/public/glTF/DeadTree_1.gltf', function (gltf) {
@@ -65,22 +87,29 @@ function moveCharacter() {
 
         // Move forward (W)
         if (keysPressed['w']) {
-            character.position.z += speed;
+            
+            controls.moveForward(speed);
         }
 
         // Move backward (S)
         if (keysPressed['s']) {
-            character.position.z -= speed;
+            controls.moveForward(-speed);  
         }
 
         // Move left (A)
         if (keysPressed['a']) {
-            character.position.x += speed;
+            controls.moveRight(-speed);   
         }
 
         // Move right (D)
         if (keysPressed['d']) {
-            character.position.x -= speed;
+            controls.moveRight(speed);
+        }
+        if (keysPressed['p']) {
+            controls.unlock();
+        }
+        if (keysPressed['o']) {
+            controls.lock();
         }
     }
 }
@@ -89,11 +118,12 @@ function moveCharacter() {
 function updateCamera() {
     if (character) {
         // Set the camera behind and slightly above the character for 3rd person view
-        const offset = new THREE.Vector3(0, 3, -7); // Offset from the character (3 units above, 7 units behind)
-        const cameraPosition = character.position.clone().add(offset); // Camera position based on character position
-        camera.position.copy(cameraPosition); // Update the camera position
-        camera.lookAt(character.position);    // Make the camera look at the character
+        //const offset = new THREE.Vector3(0, 3, -7); // Offset from the character (3 units above, 7 units behind)
+        //const cameraPosition = character.position.clone(); // Camera position based on character position
+        //orbit.position.copy(cameraPosition); // Update the camera position
+        //camera.lookAt(character.position);    // Make the camera look at the character
     }
+        //controls.update();
 }
 
 // Create a simple floor for the room
@@ -112,5 +142,10 @@ function animate() {
     updateCamera();
 
     renderer.render(scene, camera);
+    console.clear;
+    console.log("z: " + character.position.z);
+    console.log("x: " + character.position.x);
+    console.log("Angle: " + charRotAngle);
+
 }
 animate();
