@@ -1,0 +1,11 @@
+Model Information:
+* title:	Runes
+* source:	https://sketchfab.com/3d-models/runes-7a8e75da51604b978169fb6c3f8047c5
+* author:	Gildas31 (https://sketchfab.com/Gildas31)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Runes" (https://sketchfab.com/3d-models/runes-7a8e75da51604b978169fb6c3f8047c5) by Gildas31 (https://sketchfab.com/Gildas31) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
