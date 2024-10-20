@@ -13,7 +13,7 @@ let meshes = []
 const scene = new THREE.Scene();
 scene.background = new THREE.Color( 0x000000 );
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
+let raycaster = new THREE.Raycaster();
 //cameraBound.position.set(0,0,0);
 const renderer = new THREE.WebGLRenderer();
 const controls = new PointerLockControls(camera, renderer.domElement)
@@ -133,11 +133,15 @@ roof.translateZ(-1.5);
 roof.castShadow = true; //default is false
 bedroom.add( roof );
 
+let bedBB = new THREE.Box3();
 let bedgeometry =  new THREE.BoxGeometry(2.4,0.45,1.6);
 let bedmaterial =  new THREE.MeshStandardMaterial({color:0x660000});
 let bed = new THREE.Mesh( bedgeometry, bedmaterial );
 bed.translateY(-0.7);
 bed.translateX(1);
+//bedObj.add(bed);
+bed.geometry.computeBoundingBox();
+bedBB.copy(bed.geometry.boundingBox).applyMatrix4(bed.matrixWorld);
 //bed.scale.set(1.5, 1.5, 1.5);
 bedroom.add( bed );
 
@@ -256,9 +260,45 @@ loader.load('/public/symbols/libra/scene.gltf', function (gltf) {
 });
 
 function checkCollision(){
-    
+    let cameraX = camera.position.x;
+    let cameraZ = camera.position.z;
+    if (cameraX >= 1.6){
+        camera.position.x = 1.6;
+    }
+    if (cameraX <= -1.6){
+        camera.position.x = -1.6;    
+    }
+    if (cameraZ >= 1.6){
+        camera.position.z = 1.6;
+    }
+    if (cameraZ <= -1.6){
+        camera.position.z = -1.6;    
+    }
+    if (cameraZ <= 0.9 && cameraZ >= -0.9 && cameraX >= -0.1 && cameraX <= 1.7){
+        if (Math.abs(cameraZ-0.9) < Math.abs(cameraZ+0.9)){
+            camera.position.z = 0.9; 
+        }
+        else{
+            camera.position.z = -0.9;   
+        }
+        
+    }
+    if (cameraZ <= 0.4 && cameraZ >= -0.4 && cameraX >= -0.6 && cameraX <= -0.1){
+        if (Math.abs(cameraZ-0.4) < Math.abs(cameraZ+0.4)){
+            camera.position.z = 0.4; 
+        }
+        else{
+            camera.position.z = -0.4;   
+        }
+    }
+    if (cameraX >= -0.25 && ((cameraZ >= 0.3 && cameraZ <= 0.8)||(cameraZ >= -0.8 && cameraZ <= -0.3))){
+        camera.position.x = -0.25
+    }
+    if (cameraX >= -0.7 && ((cameraZ >= -0.2 && cameraZ <= 0.2))){
+        camera.position.x = -0.7
+    }
 }
-
+//x = 1.6 to -0.05
 let prevPosition = camera.position;
 let capricornRuneColor = 0x660099;
 let capricornLight = new THREE.PointLight(capricornRuneColor, 0.3, 0.06,10);
@@ -629,16 +669,25 @@ function moveCharacter() {
             }
         }*/
     }
-    if (checkCollision()){
-        camera.postion = prevPosition;
-    }
+    checkCollision()
 }
 
 
 // Function to update the camera position to follow the character
 function updateCamera() {
-    
-
+    let rayOrig = camera.position;
+    var lookDirection = new THREE.Vector3(); 
+    flashlight.getWorldDirection(lookDirection).normalize();
+    let rayDir = lookDirection;
+    rayDir.normalize();
+    let testRay = new THREE.Ray(rayOrig,rayDir)
+    //let intersects1 = raycaster.intersectObjects(bedroom.children);
+    //let intersects2 = raycaster.intersectObjects(scene.children);
+    let intersectsBed = testRay.intersectsBox(bedBB);
+    //console.log(intersects1);
+    //console.log(intersects2);
+    let tempText = camera.position.x + "," + camera.position.y + "," + camera.position.z +  "\n" + intersectsBed;
+    updateInfoPanel(tempText);
 }
 
 // Create a simple floor for the room
