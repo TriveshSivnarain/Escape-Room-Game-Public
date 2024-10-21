@@ -34,6 +34,7 @@ camera.add( listener );
     orbit.rotateX( e.movementY * scale ); 
     orbit.rotation.z = 0; //this is important to keep the camera level..
 })*/
+let mixerChest; 
 let flashlight = new THREE.SpotLight(0xffffff,4,40,Math.PI/10,1,3);
 let flashlightBBGeo = new THREE.ConeGeometry( 40*Math.sin(Math.PI/10),40, 10, 1 );
 let flashlightBB = new THREE.Mesh( flashlightBBGeo, new THREE.MeshStandardMaterial({color:0x0000ff,transparent:true,opacity:1,emissive:0x0000ff,emissiveIntensity:1}));
@@ -145,15 +146,76 @@ bedBB.copy(bed.geometry.boundingBox).applyMatrix4(bed.matrixWorld);
 //bed.scale.set(1.5, 1.5, 1.5);
 bedroom.add( bed );
 
-let strongboxgeometry =  new THREE.BoxGeometry(0.5,0.4,0.6);
+/*let strongboxgeometry =  new THREE.BoxGeometry(0.5,0.4,0.6);
 let strongboxmaterial =  new THREE.MeshStandardMaterial({color:0x6e4a30});
 let strongbox = new THREE.Mesh( strongboxgeometry, strongboxmaterial );
 strongbox.translateX(-0.4);
 strongbox.translateY(-0.8);
-bedroom.add( strongbox );
+bedroom.add( strongbox );*/
+let chestClips;
+let strongboxBB = new THREE.Box3()
+let strongbox = new THREE.Object3D();
+let strongboxgeometry;
+loader.load('/public/chest/scene.gltf', function (gltf) {
+    strongboxgeometry = gltf.scene;
+    
+    strongboxgeometry.scale.set(1,1,1);
+    strongboxgeometry.rotateY(Math.PI/2)
+    strongboxBB.expandByObject(strongboxgeometry)
+    
+    let strongBoxX = strongboxBB.max.x - strongboxBB.min.x;
+    let strongBoxY = strongboxBB.max.y - strongboxBB.min.y;
+    let strongBoxZ = strongboxBB.max.z - strongboxBB.min.z;
+    strongboxgeometry.scale.set(0.5/strongBoxX,0.3/strongBoxY,0.5/strongBoxZ);
+    //strongboxgeometry.geometry.setAttribute('uv2', new THREE.Float32BufferAttribute(strongboxgeometry.geometry.attributes.uv.array,2));
+    //let tempText = strongBoxX + "," + strongBoxY + "," + strongBoxZ;
+    //updateInfoPanel(tempText)
+    strongbox.add(strongboxgeometry);
+    mixerChest = new THREE.AnimationMixer( gltf );
+    chestClips = strongboxgeometry.animations;
+    //let clip = THREE.AnimationClip.findByName( chestClips, "openChest" );
+    
+    let action = mixerChest.clipAction( gltf.animations[0] );
+    mixerChest.setTime(0)
+    mixerChest.timeScale = 0;
+    //action.clampWhenFinished = true;
+    action.play();
+    strongbox.translateX(-0.4);
+    strongbox.translateY(-1.1);
+    strongbox.rotateY(Math.PI);
+    strongbox.scale.set(2,2,2);
+    
+    bedroom.add(strongbox);
+    
+}, undefined, function (error) {
+    console.error('An error occurred while loading the character model:', error);
+});
+
+
+let bookLight = new THREE.PointLight(0xfcffa8, 0.3, 0.3,10);
+bookLight.position.set( 0, 0.2, 0.2 );
+let bookObj = new THREE.Object3D();
+//let tempDot = new THREE.Mesh(new THREE.SphereGeometry(0.05,32, 16),new THREE.MeshBasicMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:1}));
+let book;
+//let ariesMat = new THREE.MeshStandardMaterial({color: 0x000000,emissive:ariesRuneColor,emissiveIntensity:1,transparent:true,opacity:1});
+loader.load('/public/book/scene.gltf', function (gltf) {
+    book = gltf.scene;
+    book.scale.set(0.02,0.02,0.02)
+    bookObj.add(bookLight)
+    bookObj.add(book)
+    bookObj.rotateY(Math.PI/2)
+    bookObj.rotateX(-Math.PI/2)
+    bookObj.position.set(0.1,0.32,0)
+    bookObj.scale.set(0.3,0.3,0.3)
+    bookObj.visible = false
+    //bookObj.opacity = 0
+    strongbox.add(bookObj);
+}, undefined, function (error) {
+    console.error('An error occurred while loading the character model:', error);
+});
 
 let ariesRuneColor = 0x690000;
-let ariesLight = new THREE.PointLight(ariesRuneColor, 0.3, 0.06,10);
+let ariesLight = new THREE.PointLight(ariesRuneColor, 0.3, 0.2,10);
 ariesLight.position.set( 0, 0, 0 );
 let runeAries = new THREE.Object3D();
 //let tempDot = new THREE.Mesh(new THREE.SphereGeometry(0.05,32, 16),new THREE.MeshBasicMaterial({color:0xffffff,emissive:0xffffff,emissiveIntensity:1}));
@@ -165,15 +227,15 @@ loader.load('/public/symbols/aries/scene.gltf', function (gltf) {
     runeAriesSymbol.traverse((o) => {
         if (o.isMesh) o.material = ariesMat;
       });
-    runeAriesSymbol.scale.set(0.0005, 0.0005, 0.0005);
+    runeAriesSymbol.scale.set(0.001, 0.001, 0.001);
     runeAriesSymbol.translateY(-0.2);
     runeAriesSymbol.translateZ(0.1);
     //runeAries.add(tempDot);
     runeAries.add(runeAriesSymbol);
     runeAries.add(ariesLight);
     //scene.add(runeAries);
-    runeAries.scale.set(0.2,0.2,0.2);
-    runeAries.position.set(-0.27, 0, 0);
+    runeAries.scale.set(0.1,0.1,0.1);
+    runeAries.position.set(0.11, 0.17, 0);
     runeAries.rotateX(Math.PI/2);
     runeAries.rotateZ(Math.PI/2);
     strongbox.add(runeAries);
@@ -219,14 +281,14 @@ loader.load('/public/symbols/libra/scene.gltf', function (gltf) {
     runeLibraSymbol.traverse((o) => {
         if (o.isMesh) o.material = libraMat;
       });
-    runeLibraSymbol.scale.set(0.004, 0.004, 0.004);
-    runeLibraSymbol.translateY(-0.55);
-    runeLibraSymbol.translateZ(0);
+    runeLibraSymbol.translateY(-0.17);
+    runeLibraSymbol.translateX(0);
+    runeLibraSymbol.scale.set(0.002, 0.002, 0.002);
     //runeLibra.add(tempDot);
     runeLibra.add(runeLibraSymbol);
     runeLibra.add(libraLight);
     runeLibra.scale.set(0.1,0.1,0.1);
-    runeLibra.position.set(-0.27, 0, -0.2);
+    runeLibra.position.set(0.11, 0.17, 0.12);
     runeLibra.rotateX(Math.PI/2);
     runeLibra.rotateZ(Math.PI/2);
     //scene.add(runeLibra);
@@ -313,15 +375,17 @@ loader.load('/public/symbols/capricorn/scene.gltf', function (gltf) {
     runeCapricornSymbol.traverse((o) => {
         if (o.isMesh) o.material = capricornMat;
       });
-    runeCapricornSymbol.scale.set(0.0004, 0.0004, 0.0004);
+    runeCapricornSymbol.scale.set(0.0002, 0.0002, 0.0002);
     runeCapricornSymbol.translateY(0);
-    runeCapricornSymbol.translateZ(-0.1);
+    runeCapricornSymbol.translateZ(0);
+    //runeCapricornSymbol.translateX
     //runeCapricorn.add(tempDot);
     runeCapricorn.add(runeCapricornSymbol);
     runeCapricorn.add(capricornLight);
     //scene.add(runeCapricorn);
     runeCapricorn.scale.set(0.2,0.2,0.2);
-    runeCapricorn.position.set(-0.27, 0, 0.2);
+    runeCapricorn.rotateY(Math.PI)
+    runeCapricorn.position.set(0.11, 0.17, -0.12);
     //runeCapricorn.rotateX(Math.PI/2);
     runeCapricorn.rotateY(-Math.PI/2);
     strongbox.add(runeCapricorn);
@@ -407,6 +471,18 @@ function runeCapricornLightLoop(){
     capricornMat.opacity = capricornRuneEm;
 }
 
+function bookLightLoop(){
+    let elapsed = clock.getElapsedTime();
+    let bookLightInt = 0.3*Math.cos(0.5*elapsed);
+    if (bookLightInt < 0.1){
+        bookLightInt = 0.1;
+    }
+    //let ariesRuneOp = 1*Math.cos(0.8*elapsed);
+    bookLight.intensity = bookLightInt;
+    //capricornMat.emissiveIntensity = capricornRuneEm;
+    //capricornMat.opacity = capricornRuneEm;
+}
+
 let randomIntervalLibra = Math.floor(Math.random() * 100);
 function runeLibraLightLoop(){
     let elapsed = clock.getElapsedTime();
@@ -439,9 +515,9 @@ function updateLibraWallRune(){
     var pos = cameraPos.sub( targetPosition );
     let angle = pos.angleTo( lookDirection );
     let front = angle < Math.abs(0.1);
-    if (front && flashlight.intensity > 0) { 
+    if ((front && flashlight.intensity > 0) ||(libraSpirit.position.distanceTo(libraWallMarker.position) <= 0.6 && libraSpiritLight.intensity >= 0.04)) { 
         angle  = pos.angleTo( lookDirection );
-        libraWallRuneInt = libraWallRuneInt + 0.002;
+        libraWallRuneInt = libraWallRuneInt + 0.004;
         front = true
     }
     else{
@@ -505,9 +581,9 @@ function updateCapricornWallRune(){
     var pos = cameraPos.sub( targetPosition );
     let angle = pos.angleTo( lookDirection );
     let front = angle < Math.abs(0.1);
-    if (front && flashlight.intensity > 0) { 
+    if (front && flashlight.intensity > 0||(capricornSpirit.position.distanceTo(capricornWallMarker.position) <= 0.6 && capricornSpiritLight.intensity >= 0.04)) { 
         angle  = pos.angleTo( lookDirection );
-        capricornWallRuneInt = capricornWallRuneInt + 0.002;
+        capricornWallRuneInt = capricornWallRuneInt + 0.004;
         front = true
     }
     else{
@@ -573,7 +649,7 @@ function updateAriesWallRune(){
     let front = angle < Math.abs(0.1);
     if (front && flashlight.intensity > 0) { 
         angle  = pos.angleTo( lookDirection );
-        ariesWallRuneInt = ariesWallRuneInt + 0.002;
+        ariesWallRuneInt = ariesWallRuneInt + 0.004;
         front = true
     }
     else{
@@ -628,7 +704,84 @@ function ariesBoxRuneUpdate(){
 function updateInfoPanel(text){
     document.getElementById("infoPanel").innerText = text;
 }
+let libraWallMarker = new THREE.Object3D();
+//let libraWallMarkerSprite = new THREE.Mesh(new THREE.SphereGeometry(0.01,32, 16),new THREE.MeshBasicMaterial({color:ariesRuneColor,emissive:ariesRuneColor,emissiveIntensity:0.5}));
+//libraWallMarker.add(libraWallMarkerSprite);
+libraWallMarker.position.set(0,0,1.75)
+scene.add(libraWallMarker);
+let libraSpirit = new THREE.Object3D();
+let libraSpiritSprite = new THREE.Mesh(new THREE.SphereGeometry(0.01,32, 16),new THREE.MeshBasicMaterial({color:libraRuneColor,emissive:libraRuneColor,emissiveIntensity:0.5,transparent:true,opacity:0.7}));
+let libraSpiritLight = new THREE.PointLight(libraRuneColor, 0.1, 0.5,2);
+libraSpirit.add(libraSpiritSprite);
+libraSpirit.add(libraSpiritLight);
+scene.add(libraSpirit)
+
+function updateLibraSpirt(){
+    let elapsedTime = clock.getElapsedTime()
+    let libraSpiritXSpeed = 0.05*Math.cos(0.4*elapsedTime)+0.05;
+    let libraSpiritZSpeed = 0.05*Math.cos(0.4*elapsedTime+0.8)+0.05;
+    let libraSpiritYSpeed = 0.05*Math.cos(0.4*elapsedTime-1.3)+0.05;
+    let libraSpiritX = 1.6*Math.cos(libraSpiritXSpeed*elapsedTime + 0.5);
+    let libraSpiritZ = 1.6*Math.cos(libraSpiritZSpeed*elapsedTime -0.9) ;
+    let libraSpiritY = 0.3*Math.sin(libraSpiritYSpeed*elapsedTime +1) ;
+    let libraSpiritEm = 0.5*Math.cos(0.4*elapsedTime+0.5);
+    let libraSpiritLightEm = 0.1*Math.cos(0.4*elapsedTime+0.5);
+    let libraSpiritOp = 0.7*Math.cos(0.4*elapsedTime+0.5);
+    if (libraSpiritOp < 0){
+        libraSpiritOp = 0
+    }
+    if (libraSpiritEm < 0){
+        libraSpiritEm = 0
+    }
+    if (libraSpiritLightEm < 0){
+        libraSpiritLightEm = 0
+    }
+    libraSpiritSprite.material.emissiveIntensity = libraSpiritEm;
+    libraSpiritSprite.material.opacity = libraSpiritOp;
+    libraSpiritLight.intensity = libraSpiritLightEm;
+    libraSpirit.position.set(libraSpiritX,libraSpiritY,libraSpiritZ);
+}
+
+let capricornWallMarker = new THREE.Object3D();
+let capricornWallMarkerSprite = new THREE.Mesh(new THREE.SphereGeometry(0.01,32, 16),new THREE.MeshBasicMaterial({color:ariesRuneColor,emissive:ariesRuneColor,emissiveIntensity:0.5}));
+//capricornWallMarker.add(capricornWallMarkerSprite);
+capricornWallMarker.position.set(-1.6,-0.9,1.6)
+scene.add(capricornWallMarker);
+let capricornSpirit = new THREE.Object3D();
+let capricornSpiritSprite = new THREE.Mesh(new THREE.SphereGeometry(0.01,32, 16),new THREE.MeshBasicMaterial({color:capricornRuneColor,emissive:capricornRuneColor,emissiveIntensity:0.5,transparent:true,opacity:0.7}));
+let capricornSpiritLight = new THREE.PointLight(capricornRuneColor, 0.1, 0.5,2);
+capricornSpirit.add(capricornSpiritSprite);
+capricornSpirit.add(capricornSpiritLight);
+scene.add(capricornSpirit)
+
+function updateCapricornSpirt(){
+    let elapsedTime = clock.getElapsedTime()
+    let capricornSpiritXSpeed = 0.07*Math.cos(0.4*elapsedTime+0.2)+0.07;
+    let capricornSpiritZSpeed = 0.07*Math.cos(0.4*elapsedTime+0.1)+0.07;
+    let capricornSpiritYSpeed = 0.07*Math.cos(0.4*elapsedTime+0.6)+0.07;
+    let capricornSpiritX = 1.6*Math.cos(capricornSpiritXSpeed*elapsedTime + 0.1);
+    let capricornSpiritZ = 1.6*Math.cos(capricornSpiritZSpeed*elapsedTime -1.6) ;
+    let capricornSpiritY = 0.95*Math.sin(capricornSpiritYSpeed*elapsedTime +0.2) ;
+    let capricornSpiritEm = 0.5*Math.cos(0.6*elapsedTime+0.5);
+    let capricornSpiritLightEm = 0.1*Math.cos(0.6*elapsedTime+0.5);
+    let capricornSpiritOp = 0.7*Math.cos(0.6*elapsedTime+0.5);
+    if (capricornSpiritOp < 0){
+        capricornSpiritOp = 0
+    }
+    if (capricornSpiritEm < 0){
+        capricornSpiritEm = 0
+    }
+    if (capricornSpiritLightEm < 0){
+        capricornSpiritLightEm = 0
+    }
+    capricornSpiritSprite.material.emissiveIntensity = capricornSpiritEm;
+    capricornSpiritSprite.material.opacity = capricornSpiritOp;
+    capricornSpiritLight.intensity = capricornSpiritLightEm;
+    capricornSpirit.position.set(capricornSpiritX,capricornSpiritY,capricornSpiritZ);
+}
 // Function to move the character based on keyboard input
+let bookNotPicked = true
+let chestClosed = true
 function moveCharacter() {
     prevPosition = camera.position;
     if (character) {
@@ -668,9 +821,27 @@ function moveCharacter() {
                 flashlight.intensity = 4;
             }
         }*/
+        if (camera.position.distanceTo(strongbox.position) <= 1.3 && ariesWallRuneFound && libraWallRuneFound && capricornWallRuneFound && bookNotPicked){
+            document.getElementById("interactionPopUp").style.display="block";
+        }
+        else{
+            document.getElementById("interactionPopUp").style.display="none"; 
+        }
+
+        if (keysPressed['e'] && !chestClosed) {
+            bookNotPicked = false
+            bookObj.visible = false
+        }
     }
+    //let tempText = camera.position.distanceTo(strongbox.position);
+    //updateInfoPanel(tempText)
     checkCollision()
 }
+
+
+
+
+
 
 
 // Function to update the camera position to follow the character
@@ -686,8 +857,6 @@ function updateCamera() {
     let intersectsBed = testRay.intersectsBox(bedBB);
     //console.log(intersects1);
     //console.log(intersects2);
-    let tempText = camera.position.x + "," + camera.position.y + "," + camera.position.z +  "\n" + intersectsBed;
-    updateInfoPanel(tempText);
 }
 
 // Create a simple floor for the room
@@ -698,21 +867,32 @@ floor.position.set(0, -1, 0); // Position the floor
 scene.add(floor);
 clock.start();
 // Animation loop
+let notPlayed = true
 function animate() {
+    let deltaSeconds = clock.getDelta();
+    //mixerChest.setTime( mixerChest.time + (deltaSeconds * mixerChest.timeScale) );
     requestAnimationFrame(animate);
-
+    if (ariesWallRuneFound && libraWallRuneFound && capricornWallRuneFound && chestClosed){
+        bookObj.visible = true
+        chestClosed = false
+    }
     // Update camera and character movement
     moveCharacter();
     updateCamera();
     //runeAriesLightLoop();
     //runeLibraLightLoop();
     //runeCapricornLightLoop();
+    bookLightLoop();
     updateLibraWallRune();
     libraBoxRuneUpdate();
     updateCapricornWallRune();
     capricornBoxRuneUpdate();
     updateAriesWallRune();
     ariesBoxRuneUpdate();
+    updateLibraSpirt();
+    updateCapricornSpirt();
+    //let tempBox = libraSpirit.position.distanceTo(libraWallMarker.position);
+    //updateInfoPanel(tempBox)
     renderer.render(scene, camera);
 }
 animate();
