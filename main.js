@@ -19,6 +19,7 @@ const renderer = new THREE.WebGLRenderer();
 const controls = new PointerLockControls(camera, renderer.domElement)
 controls.addEventListener('lock', () => (menuPanel.style.display = 'none'))
 controls.addEventListener('unlock', () => (menuPanel.style.display = 'block'))
+// -- Set Camera Initial position --
 camera.position.set(-1.2281441960864121,-1.0824674490095276e-16,1.3014979497159611);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -35,6 +36,7 @@ camera.add( listener );
     orbit.rotation.z = 0; //this is important to keep the camera level..
 })*/
 let mixerChest; 
+// --- Create flashlight ---
 let flashlight = new THREE.SpotLight(0xffffff,4,40,Math.PI/10,1,3);
 let flashlightBBGeo = new THREE.ConeGeometry( 40*Math.sin(Math.PI/10),40, 10, 1 );
 let flashlightBB = new THREE.Mesh( flashlightBBGeo, new THREE.MeshStandardMaterial({color:0x0000ff,transparent:true,opacity:1,emissive:0x0000ff,emissiveIntensity:1}));
@@ -45,10 +47,14 @@ flashlightBB.position.set(0,-20,0);
 flashlightBB.rotateZ(Math.PI/2);
 flashlight.target = camera;
 scene.add(flashlight.target);
+
+
+
+//const pointLight = new THREE.PointLight(0x00ff00, 1, 100,4);
+//pointLight.position.set( 0, 0, 0 );
 // Add Ambient Light (soft global light for all objects)
-const pointLight = new THREE.PointLight(0x00ff00, 1, 100,4);
-pointLight.position.set( 0, 0, 0 );
-// Add Ambient Light (soft global light for all objects)
+
+
 const ambientLight = new THREE.AmbientLight(0x101010);
 //pointLight.position.set( 0, 0, 0 );
 scene.add(ambientLight);
@@ -83,6 +89,7 @@ const bedroom = new THREE.Object3D();
 
 bedroomGroup.add(bedroom);
 scene.add(bedroomGroup);
+// --- Load Wall Texture ---
 let textureLoader = new THREE.TextureLoader();
 let walltexture = textureLoader.load(
     'public/bedroomWalls/oldwood_DIFF.png',
@@ -99,6 +106,8 @@ let walltexturebump = textureLoader.load(
 let walltextureocc = textureLoader.load(
         'public/bedroomWalls/oldwood_OCC.png',
     );
+
+// --- Create Walls ---
 let wallgeometry = new THREE.BoxGeometry(4, 4, 0.5);
 let wallmaterial = new THREE.MeshStandardMaterial( { map: walltexture, normalMap: walltexturenormals,specularMap:walltexturespecular,bumpMap:walltexturebump,aoMap:walltextureocc } );
 let roofmaterial = new THREE.MeshStandardMaterial( { color: 0x33271d  } );
@@ -128,12 +137,14 @@ wallD.translateZ(2);
 wallD.castShadow = true; //default is false
 bedroom.add( wallD );
 
+// --- Create Roof ---
 let roof = new THREE.Mesh( wallgeometry, roofmaterial );
 roof.rotateX(Math.PI/2);
 roof.translateZ(-1.5);
 roof.castShadow = true; //default is false
 bedroom.add( roof );
 
+// --- Create Bed Object ---
 let bedBB = new THREE.Box3();
 let bedgeometry =  new THREE.BoxGeometry(2.4,0.45,1.6);
 let bedmaterial =  new THREE.MeshStandardMaterial({color:0x660000});
@@ -152,6 +163,8 @@ let strongbox = new THREE.Mesh( strongboxgeometry, strongboxmaterial );
 strongbox.translateX(-0.4);
 strongbox.translateY(-0.8);
 bedroom.add( strongbox );*/
+
+// --- Create Chest Object ---
 let chestClips;
 let strongboxBB = new THREE.Box3()
 let strongbox = new THREE.Object3D();
@@ -192,6 +205,7 @@ loader.load('/public/chest/scene.gltf', function (gltf) {
 });
 
 
+// --- Create Book Object ---
 let bookLight = new THREE.PointLight(0xfcffa8, 0.3, 0.3,10);
 bookLight.position.set( 0, 0.2, 0.2 );
 let bookObj = new THREE.Object3D();
@@ -214,6 +228,7 @@ loader.load('/public/book/scene.gltf', function (gltf) {
     console.error('An error occurred while loading the character model:', error);
 });
 
+// --- Create Aries Box Rune ---
 let ariesRuneColor = 0x690000;
 let ariesLight = new THREE.PointLight(ariesRuneColor, 0.3, 0.2,10);
 ariesLight.position.set( 0, 0, 0 );
@@ -243,6 +258,7 @@ loader.load('/public/symbols/aries/scene.gltf', function (gltf) {
     console.error('An error occurred while loading the character model:', error);
 });
 
+// --- Create Aries Wall Rune ---
 let ariesWallRune = new THREE.Object3D();
 let ariesWallRuneSymbol;
 let ariesWallMat = new THREE.MeshStandardMaterial({color: 0x000000,emissive:ariesRuneColor,emissiveIntensity:0,transparent:true,opacity:0});
@@ -268,6 +284,7 @@ loader.load('/public/symbols/aries/scene.gltf', function (gltf) {
     console.error('An error occurred while loading the character model:', error);
 });
 
+// --- Create Libra Box Rune ---
 let libraRuneColor = 0x00917c;
 let libraLight = new THREE.PointLight(libraRuneColor, 0.3, 0.06,10);
 libraLight.position.set( 0, 0, 0 );
@@ -297,6 +314,7 @@ loader.load('/public/symbols/libra/scene.gltf', function (gltf) {
     console.error('An error occurred while loading the character model:', error);
 });
 
+// --- Create Libra Wall Rune ---
 let libraWallRune = new THREE.Object3D();
 let libraWallRuneSymbol;
 let libraWallMat = new THREE.MeshStandardMaterial({color: 0x000000,emissive:libraRuneColor,emissiveIntensity:0,transparent:true,opacity:0});
@@ -321,47 +339,10 @@ loader.load('/public/symbols/libra/scene.gltf', function (gltf) {
     console.error('An error occurred while loading the character model:', error);
 });
 
-function checkCollision(){
-    let cameraX = camera.position.x;
-    let cameraZ = camera.position.z;
-    if (cameraX >= 1.6){
-        camera.position.x = 1.6;
-    }
-    if (cameraX <= -1.6){
-        camera.position.x = -1.6;    
-    }
-    if (cameraZ >= 1.6){
-        camera.position.z = 1.6;
-    }
-    if (cameraZ <= -1.6){
-        camera.position.z = -1.6;    
-    }
-    if (cameraZ <= 0.9 && cameraZ >= -0.9 && cameraX >= -0.1 && cameraX <= 1.7){
-        if (Math.abs(cameraZ-0.9) < Math.abs(cameraZ+0.9)){
-            camera.position.z = 0.9; 
-        }
-        else{
-            camera.position.z = -0.9;   
-        }
-        
-    }
-    if (cameraZ <= 0.4 && cameraZ >= -0.4 && cameraX >= -0.6 && cameraX <= -0.1){
-        if (Math.abs(cameraZ-0.4) < Math.abs(cameraZ+0.4)){
-            camera.position.z = 0.4; 
-        }
-        else{
-            camera.position.z = -0.4;   
-        }
-    }
-    if (cameraX >= -0.25 && ((cameraZ >= 0.3 && cameraZ <= 0.8)||(cameraZ >= -0.8 && cameraZ <= -0.3))){
-        camera.position.x = -0.25
-    }
-    if (cameraX >= -0.7 && ((cameraZ >= -0.2 && cameraZ <= 0.2))){
-        camera.position.x = -0.7
-    }
-}
+
 //x = 1.6 to -0.05
 let prevPosition = camera.position;
+// --- Create Capricorn Box Rune ---
 let capricornRuneColor = 0x660099;
 let capricornLight = new THREE.PointLight(capricornRuneColor, 0.3, 0.06,10);
 capricornLight.position.set( 0, 0, 0 );
@@ -393,6 +374,7 @@ loader.load('/public/symbols/capricorn/scene.gltf', function (gltf) {
     console.error('An error occurred while loading the character model:', error);
 });
 
+// --- Create Capricorn Wall Rune ---
 let capricornWallRune = new THREE.Object3D();
 let capricornWallRuneSymbol;
 let capricornWallMat = new THREE.MeshStandardMaterial({color: 0x000000,emissive:capricornRuneColor,emissiveIntensity:0,transparent:true,opacity:0});
@@ -419,13 +401,14 @@ loader.load('/public/symbols/capricorn/scene.gltf', function (gltf) {
     console.error('An error occurred while loading the character model:', error);
 });
 
-// Keyboard controls
+// --- Keyboard controls ---
 const keysPressed = {};
 document.addEventListener('keydown', (event) => {
     keysPressed[event.key.toLowerCase()] = true;
 });
 document.addEventListener('keyup', (event) => {
     keysPressed[event.key.toLowerCase()] = false;
+    // -- Flashlight control --
     if (event.key.toLowerCase() == 'f'){
         if (flashlight.intensity != 0){
             flashlight.intensity = 0;
@@ -436,6 +419,20 @@ document.addEventListener('keyup', (event) => {
     }
 });
 
+// --- Book Light flicker ---
+function bookLightLoop(){
+    let elapsed = clock.getElapsedTime();
+    let bookLightInt = 0.3*Math.cos(0.5*elapsed);
+    if (bookLightInt < 0.1){
+        bookLightInt = 0.1;
+    }
+    //let ariesRuneOp = 1*Math.cos(0.8*elapsed);
+    bookLight.intensity = bookLightInt;
+    //capricornMat.emissiveIntensity = capricornRuneEm;
+    //capricornMat.opacity = capricornRuneEm;
+}
+
+// --- Aries Box Rune Debug flicker ---
 let randomIntervalAries = Math.floor(Math.random() * 100);
 function runeAriesLightLoop(){
     let elapsed = clock.getElapsedTime();
@@ -454,6 +451,7 @@ function runeAriesLightLoop(){
     ariesMat.opacity = ariesRuneEm;
 }
 
+// --- Capricorn Box Rune Debug flicker ---
 let randomIntervalCapricorn = Math.floor(Math.random() * 100);
 function runeCapricornLightLoop(){
     let elapsed = clock.getElapsedTime();
@@ -471,18 +469,9 @@ function runeCapricornLightLoop(){
     capricornMat.opacity = capricornRuneEm;
 }
 
-function bookLightLoop(){
-    let elapsed = clock.getElapsedTime();
-    let bookLightInt = 0.3*Math.cos(0.5*elapsed);
-    if (bookLightInt < 0.1){
-        bookLightInt = 0.1;
-    }
-    //let ariesRuneOp = 1*Math.cos(0.8*elapsed);
-    bookLight.intensity = bookLightInt;
-    //capricornMat.emissiveIntensity = capricornRuneEm;
-    //capricornMat.opacity = capricornRuneEm;
-}
 
+
+// --- Libra Box Rune Debug flicker ---
 let randomIntervalLibra = Math.floor(Math.random() * 100);
 function runeLibraLightLoop(){
     let elapsed = clock.getElapsedTime();
@@ -502,7 +491,7 @@ function runeLibraLightLoop(){
 }
 
 
-
+// --- Libra Wall Rune Update as lights come near it ---
 let libraWallRuneInt = 0;
 let libraWallRuneFound = false;
 function updateLibraWallRune(){
@@ -556,6 +545,7 @@ function updateLibraWallRune(){
     
 }
 
+// --- When Libra Wall Rune is found, Libra rune on box lights up ---
 function libraBoxRuneUpdate(){
     if (libraWallRuneFound){
         libraLight.intensity = 0.3;
@@ -569,6 +559,7 @@ function libraBoxRuneUpdate(){
     }
 }
 
+// --- Capricorn Wall Rune Update as lights come near it ---
 let capricornWallRuneInt = 0;
 let capricornWallRuneFound = false;
 function updateCapricornWallRune(){
@@ -621,7 +612,7 @@ function updateCapricornWallRune(){
     //console.log(lookDirection+"\n")
     //console.log(cameraRuneVec)
 }
-
+// --- When Capricorn Wall Rune is found, Capricorn rune on box lights up ---
 function capricornBoxRuneUpdate(){
     if (capricornWallRuneFound){
         capricornLight.intensity = 0.3;
@@ -635,6 +626,7 @@ function capricornBoxRuneUpdate(){
     }
 }
 
+// --- Aries Wall Rune Update as lights come near it ---
 let ariesWallRuneInt = 0;
 let ariesWallRuneFound = false;
 function updateAriesWallRune(){
@@ -687,7 +679,7 @@ function updateAriesWallRune(){
     //console.log(lookDirection+"\n")
     //console.log(cameraRuneVec)
 }
-
+// --- When Aries Wall Rune is found, Aries rune on box lights up ---
 function ariesBoxRuneUpdate(){
     if (ariesWallRuneFound){
         ariesLight.intensity = 0.3;
@@ -701,9 +693,52 @@ function ariesBoxRuneUpdate(){
     }
 }
 
+// --- Check collision of camera/player with objects and walls in room ---
+function checkCollision(){
+    let cameraX = camera.position.x;
+    let cameraZ = camera.position.z;
+    if (cameraX >= 1.6){
+        camera.position.x = 1.6;
+    }
+    if (cameraX <= -1.6){
+        camera.position.x = -1.6;    
+    }
+    if (cameraZ >= 1.6){
+        camera.position.z = 1.6;
+    }
+    if (cameraZ <= -1.6){
+        camera.position.z = -1.6;    
+    }
+    if (cameraZ <= 0.9 && cameraZ >= -0.9 && cameraX >= -0.1 && cameraX <= 1.7){
+        if (Math.abs(cameraZ-0.9) < Math.abs(cameraZ+0.9)){
+            camera.position.z = 0.9; 
+        }
+        else{
+            camera.position.z = -0.9;   
+        }
+        
+    }
+    if (cameraZ <= 0.4 && cameraZ >= -0.4 && cameraX >= -0.6 && cameraX <= -0.1){
+        if (Math.abs(cameraZ-0.4) < Math.abs(cameraZ+0.4)){
+            camera.position.z = 0.4; 
+        }
+        else{
+            camera.position.z = -0.4;   
+        }
+    }
+    if (cameraX >= -0.25 && ((cameraZ >= 0.3 && cameraZ <= 0.8)||(cameraZ >= -0.8 && cameraZ <= -0.3))){
+        camera.position.x = -0.25
+    }
+    if (cameraX >= -0.7 && ((cameraZ >= -0.2 && cameraZ <= 0.2))){
+        camera.position.x = -0.7
+    }
+}
+
+// --- Info Panel for Debugging ---
 function updateInfoPanel(text){
     document.getElementById("infoPanel").innerText = text;
 }
+// --- Teal Sprite Setup ---
 let libraWallMarker = new THREE.Object3D();
 //let libraWallMarkerSprite = new THREE.Mesh(new THREE.SphereGeometry(0.01,32, 16),new THREE.MeshBasicMaterial({color:ariesRuneColor,emissive:ariesRuneColor,emissiveIntensity:0.5}));
 //libraWallMarker.add(libraWallMarkerSprite);
@@ -716,6 +751,7 @@ libraSpirit.add(libraSpiritSprite);
 libraSpirit.add(libraSpiritLight);
 scene.add(libraSpirit)
 
+// --- Teal sprite moving around ---
 function updateLibraSpirt(){
     let elapsedTime = clock.getElapsedTime()
     let libraSpiritXSpeed = 0.05*Math.cos(0.4*elapsedTime)+0.05;
@@ -740,8 +776,11 @@ function updateLibraSpirt(){
     libraSpiritSprite.material.opacity = libraSpiritOp;
     libraSpiritLight.intensity = libraSpiritLightEm;
     libraSpirit.position.set(libraSpiritX,libraSpiritY,libraSpiritZ);
+    //let tempText = libraSpiritX + "," + libraSpiritY + "," + libraSpiritZ
+    //updateInfoPanel(tempText)
 }
 
+// --- Purple Sprite setup ---
 let capricornWallMarker = new THREE.Object3D();
 let capricornWallMarkerSprite = new THREE.Mesh(new THREE.SphereGeometry(0.01,32, 16),new THREE.MeshBasicMaterial({color:ariesRuneColor,emissive:ariesRuneColor,emissiveIntensity:0.5}));
 //capricornWallMarker.add(capricornWallMarkerSprite);
@@ -754,6 +793,7 @@ capricornSpirit.add(capricornSpiritSprite);
 capricornSpirit.add(capricornSpiritLight);
 scene.add(capricornSpirit)
 
+// --- Purple sprite moving around ---
 function updateCapricornSpirt(){
     let elapsedTime = clock.getElapsedTime()
     let capricornSpiritXSpeed = 0.07*Math.cos(0.4*elapsedTime+0.2)+0.07;
@@ -779,7 +819,7 @@ function updateCapricornSpirt(){
     capricornSpiritLight.intensity = capricornSpiritLightEm;
     capricornSpirit.position.set(capricornSpiritX,capricornSpiritY,capricornSpiritZ);
 }
-// Function to move the character based on keyboard input
+// --- Function to move the character based on keyboard input ---
 let bookNotPicked = true
 let chestClosed = true
 function moveCharacter() {
@@ -807,6 +847,7 @@ function moveCharacter() {
         if (keysPressed['d']) {
             controls.moveRight(speed);
         }
+        // -- Pointerlock controls --
         if (keysPressed['p']) {
             controls.unlock();
         }
@@ -821,13 +862,14 @@ function moveCharacter() {
                 flashlight.intensity = 4;
             }
         }*/
+       // -- Popup for interaction with book once revealed --
         if (camera.position.distanceTo(strongbox.position) <= 1.3 && ariesWallRuneFound && libraWallRuneFound && capricornWallRuneFound && bookNotPicked){
             document.getElementById("interactionPopUp").style.display="block";
         }
         else{
             document.getElementById("interactionPopUp").style.display="none"; 
         }
-
+        // -- Interaction with book --
         if (keysPressed['e'] && !chestClosed) {
             bookNotPicked = false
             bookObj.visible = false
@@ -844,7 +886,7 @@ function moveCharacter() {
 
 
 
-// Function to update the camera position to follow the character
+// --- Function to update the camera position to follow the character ---
 function updateCamera() {
     let rayOrig = camera.position;
     var lookDirection = new THREE.Vector3(); 
@@ -872,6 +914,7 @@ function animate() {
     let deltaSeconds = clock.getDelta();
     //mixerChest.setTime( mixerChest.time + (deltaSeconds * mixerChest.timeScale) );
     requestAnimationFrame(animate);
+    // --- Open the chest after all runes have been found ---
     if (ariesWallRuneFound && libraWallRuneFound && capricornWallRuneFound && chestClosed){
         bookObj.visible = true
         chestClosed = false
